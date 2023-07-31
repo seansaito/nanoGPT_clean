@@ -4,6 +4,7 @@ Based on https://github.com/karpathy/nanoGPT/tree/master/data
 """
 
 import logging
+import pickle
 
 import numpy as np
 import requests
@@ -75,7 +76,21 @@ def encode_data(path: str, train_ratio: float = 0.9) -> dict[str, str]:
     logger.info("Saving validation data to: {}".format(path_val_save))
     arr_val_ids.tofile(path_val_save)
 
+    # Save metadata
+    chars = sorted(list(set(data)))
+    vocab_size = len(chars)
+    # create a mapping from characters to integers
+    stoi = {ch: i for i, ch in enumerate(chars)}
+    itos = {i: ch for i, ch in enumerate(chars)}
+    dict_meta = {"vocab_size": vocab_size, "stoi": stoi, "itos": itos}
+    path_meta_data = gen_path(
+        path_dir=DATA_DIR / "dataset" / DATASET_NAME, fname="meta.pkl", timestamp=False
+    )
+    with open(path_meta_data, "wb") as fp:
+        pickle.dump(dict_meta, fp)
+
     return {
         "train_ids": path_train_save,
         "val_ids": path_val_save,
+        "meta_data": path_meta_data,
     }

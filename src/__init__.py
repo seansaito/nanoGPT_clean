@@ -7,6 +7,7 @@ ROOT_DIR = Path(__file__).parent.parent
 DATA_DIR = ROOT_DIR / "data"
 LOG_DIR = DATA_DIR / "log"
 CONFIG_DIR = ROOT_DIR / "config"
+CHECKPOINT_DIR = ROOT_DIR / "checkpoints"
 
 # Encoding
 ENCODING = "utf-8-sig"
