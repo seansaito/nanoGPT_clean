@@ -60,7 +60,6 @@ class GPTTrainer:
         grad_clip,
         log_interval,
         # Others
-        log_wandb,
         quick_test,
     ):
         self.dataset = dataset
@@ -86,7 +85,6 @@ class GPTTrainer:
         self.eval_interval = eval_interval
         self.eval_iters = eval_iters
         # TODO add wandb support
-        self.log_wandb = log_wandb
         self.quick_test = quick_test
         self.gradient_accumulation_steps = gradient_accumulation_steps
         self.grad_clip = grad_clip
