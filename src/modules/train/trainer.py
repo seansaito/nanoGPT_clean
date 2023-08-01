@@ -19,6 +19,7 @@ import numpy as np
 import torch
 
 from src import CHECKPOINT_DIR, DATA_DIR
+from src.modules.model.gpt import GPT
 from src.modules.train.train_utils import estimate_loss, get_batch, get_learning_rate
 from src.utils import gen_path, timeit
 
@@ -142,7 +143,26 @@ class GPTTrainer:
         # initialize a GradScaler. If enabled=False scaler is a no-op
         scaler = torch.cuda.amp.GradScaler(enabled=(dtype == "float16"))
 
-        _ = self.run_training_loop()
+        # Model args
+        dict_model_args = dict(
+            n_layers=self.n_layers,
+            n_head=self.n_head,
+            n_embed=self.n_embed,
+            block_size=self.block_size,
+            bias=self.bias,
+            vocab_size=dict_meta["vocab_size"],
+            dropout=self.dropout,
+        )
+
+        _ = self.run_training_loop(
+            model=model,
+            optimizer=optimizer,
+            scaler=scaler,
+            ctx=ctx,
+            train_data=train_data,
+            val_data=val_data,
+            dict_model_args=dict_model_args,
+        )
 
     def run_training_loop(
         self,
@@ -315,7 +335,15 @@ class GPTTrainer:
             "vocab_size": vocab_size,
             "dropout": dropout,
         }
-        model = ...
+        model = GPT(
+            block_size=block_size,
+            vocab_size=vocab_size,
+            n_layers=n_layers,
+            n_head=n_head,
+            n_embed=n_embed,
+            dropout=dropout,
+            bias=bias,
+        )
 
         if block_size < model.config.block_size:
             model.crop_block_size(block_size)
