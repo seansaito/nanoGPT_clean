@@ -44,6 +44,7 @@ def main(config: dict, quick_test: bool):
         grad_clip=config.grad_clip,
         log_interval=config.log_interval,
         quick_test=quick_test,
+        vocab_size=config.vocab_size,
     )
 
     _ = trainer.train()
@@ -66,7 +67,6 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--quick_test",
-        type=bool,
         action="store_true",
         help="Whether to run quick test",
         default=False,

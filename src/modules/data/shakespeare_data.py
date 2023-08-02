@@ -48,7 +48,7 @@ def encode_data(path: str, train_ratio: float = 0.9) -> dict[str, str]:
     # Split data into train and test
     num_lines = len(data)
     train_data = data[: int(num_lines * train_ratio)]
-    val_data = data[int(num_lines * (1 - train_ratio)) :]
+    val_data = data[int(num_lines * train_ratio) :]
 
     # Encode using tiktoken GPT-2 BPE
     encoder = tiktoken.get_encoding("gpt2")

@@ -11,6 +11,7 @@ The training method runs the following steps
 
 """
 import logging
+import os
 import pickle
 import time
 from contextlib import nullcontext
@@ -61,6 +62,7 @@ class GPTTrainer:
         log_interval,
         # Others
         quick_test,
+        vocab_size,
     ):
         self.dataset = dataset
         self.n_layers = n_layers
@@ -90,6 +92,7 @@ class GPTTrainer:
         self.grad_clip = grad_clip
         self.log_interval = log_interval
         self.max_iters = max_iters
+        self.vocab_size = vocab_size
 
     @timeit
     def train(
@@ -115,6 +118,10 @@ class GPTTrainer:
         # Load the data
         train_data, val_data, dict_meta = self.load_data()
 
+        if self.vocab_size is None:
+            assert dict_meta["vocab_size"] is not None
+            self.vocab_size = dict_meta["vocab_size"]
+
         # Initialize the model
         model = self.init_model(
             n_layers=self.n_layers,
@@ -122,7 +129,7 @@ class GPTTrainer:
             n_embed=self.n_embed,
             block_size=self.block_size,
             bias=self.bias,
-            vocab_size=dict_meta["vocab_size"],
+            vocab_size=self.vocab_size,
             dropout=self.dropout,
             device=self.device,
             compile=self.compile,
@@ -148,7 +155,7 @@ class GPTTrainer:
             n_embed=self.n_embed,
             block_size=self.block_size,
             bias=self.bias,
-            vocab_size=dict_meta["vocab_size"],
+            vocab_size=self.vocab_size,
             dropout=self.dropout,
         )
 
@@ -301,13 +308,20 @@ class GPTTrainer:
         return path_checkpoint
 
     def load_data(self):
-        path_dataset = DATA_DIR / self.dataset
+        path_dataset = DATA_DIR / "dataset" / self.dataset
         train_data = np.memmap(
             str(path_dataset / "train.bin"), dtype=np.uint16, mode="r"
         )
         val_data = np.memmap(str(path_dataset / "val.bin"), dtype=np.uint16, mode="r")
-        with open(str(path_dataset / "meta.pkl"), "rb") as fp:
-            dict_meta = pickle.load(fp)
+
+        path_meta = str(path_dataset / "meta.pkl")
+        if os.path.exists(path_meta):
+            with open(path_meta, "rb") as fp:
+                dict_meta = pickle.load(fp)
+        else:
+            dict_meta = None
+
+        logger.info("Meta: {}".format(dict_meta))
         return train_data, val_data, dict_meta
 
     def init_model(
@@ -343,7 +357,7 @@ class GPTTrainer:
             bias=bias,
         )
 
-        if block_size < model.config.block_size:
+        if block_size < model.block_size:
             model.crop_block_size(block_size)
             dict_model_args["block_size"] = block_size
 

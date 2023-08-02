@@ -67,11 +67,15 @@ class CausalSelfAttention(nn.Module):
 
         # Calculate q, k, v
         q, k, v = self.c_attn(x).split(self.n_embed, dim=2)
-        k = k.view(batch_size, seq_len, n_embed // self.n_head).transpose(
+        k = k.view(batch_size, seq_len, self.n_head, n_embed // self.n_head).transpose(
             1, 2
         )  # (batch_size, num heads, seq_len, head dim)
-        q = q.view(batch_size, seq_len, n_embed // self.n_head).transpose(1, 2)
-        v = v.view(batch_size, seq_len, n_embed // self.n_head).transpose(1, 2)
+        q = q.view(batch_size, seq_len, self.n_head, n_embed // self.n_head).transpose(
+            1, 2
+        )
+        v = v.view(batch_size, seq_len, self.n_head, n_embed // self.n_head).transpose(
+            1, 2
+        )
 
         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
         if self.flash:
