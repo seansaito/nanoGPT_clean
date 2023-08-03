@@ -1,17 +1,17 @@
 # Todo split into different sections
-batch_size: 12
-block_size: 1024
+batch_size: 6
+block_size: 256
 vocab_size: 50304
 n_layers: 6
 n_head: 6
 n_embed: 384
 dropout: 0.2
 bias: True
-weight_decay: 1e-1
+weight_decay: 0.1
 beta1: 0.9
 beta2: 0.95
 learning_rate: 0.001
-device: "cpu"
+device: "cuda"
 dataset: "tiny_shakespeare"
 compile: False
 decay_lr: True
