@@ -12,7 +12,12 @@ from src.utils import read_config, set_logging, timeit
 
 
 @timeit
-def main(config: dict, quick_test: bool):
+def main(
+    config: dict,
+    quick_test: bool,
+    wandb_project: str = None,
+    wandb_run_name: str = None,
+):
     config = box.Box(config)
     device_type = "cuda" if "cuda" in config.device else "cpu"
 
@@ -45,7 +50,16 @@ def main(config: dict, quick_test: bool):
         log_interval=config.log_interval,
         quick_test=quick_test,
         vocab_size=config.vocab_size,
+        wandb_project=wandb_project,
+        wandb_run_name=wandb_run_name,
     )
+
+    if wandb_project:
+        logger.info("Initializing wandb project and run")
+        import wandb
+
+        # Initialize wandb project if provided
+        wandb.init(project=wandb_project, name=wandb_run_name, config=config)
 
     _ = trainer.train()
 
@@ -72,10 +86,31 @@ if __name__ == "__main__":
         default=False,
     )
 
+    parser.add_argument(
+        "--wandb_project",
+        type=str,
+        help="Name of the wandb project",
+        default=None,
+    )
+
+    parser.add_argument(
+        "--wandb_run_name",
+        type=str,
+        help="Name of the wandb run name",
+        default=None,
+    )
+
     args = parser.parse_args()
     config = read_config(args.config_path)
     quick_test = bool(args.quick_test)
+    wandb_project = args.wandb_project
+    wandb_run_name = args.wandb_run_name
 
     logger.info("Config: {}".format(config))
 
-    main(config=config, quick_test=quick_test)
+    main(
+        config=config,
+        quick_test=quick_test,
+        wandb_project=wandb_project,
+        wandb_run_name=wandb_run_name,
+    )

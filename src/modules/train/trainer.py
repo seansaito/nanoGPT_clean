@@ -63,6 +63,8 @@ class GPTTrainer:
         # Others
         quick_test,
         vocab_size,
+        wandb_project,
+        wandb_run_name,
     ):
         self.dataset = dataset
         self.n_layers = n_layers
@@ -93,6 +95,8 @@ class GPTTrainer:
         self.log_interval = log_interval
         self.max_iters = max_iters
         self.vocab_size = vocab_size
+        self.wandb_project = wandb_project
+        self.wandb_run_name = wandb_run_name
 
     @timeit
     def train(
@@ -230,6 +234,22 @@ class GPTTrainer:
                             iter_num=iter_num,
                             best_val_loss=best_val_loss,
                         )
+
+                if self.wandb_project:
+                    logger.info("Logging to weights and biases")
+                    import wandb
+
+                    wandb.log(
+                        {
+                            "iter": iter_num,
+                            "train_loss": losses["train"],
+                            "val_loss": losses["val"],
+                            "lr": lr,
+                            "mfu": running_mfu,
+                            "best_val_loss": best_val_loss,
+                        }
+                    )
+
             if self.quick_test and iter_num == 0:
                 break
 
